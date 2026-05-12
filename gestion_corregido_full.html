@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockPoint — Sistema de Gestión</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --sage:#4a6741;--sage-light:#6b8f62;--sage-dark:#2e4228;
+  --mint:#e8f0e5;--mint-mid:#d1e3cb;--mint-deep:#b8d1b0;
+  --cream:#f7f4ef;--paper:#faf8f5;
+  --sand:#e8e2d8;--sand-dark:#c9c1b4;
+  --text:#2a2a24;--text-mid:#5a5a52;--text-light:#8a8a80;
+  --white:#ffffff;
+  --gold:#b5974a;--gold-light:#d4b870;
+  --red-soft:#c0605a;--red-bg:#f5ecea;
+  --green-soft:#4a7a55;--green-bg:#e8f2eb;
+  --amber-soft:#b07830;--amber-bg:#f5eedf;
+  --r:10px;--r-lg:16px;
+  --shadow:0 1px 4px rgba(42,42,36,0.08);
+  --shadow-md:0 4px 16px rgba(42,42,36,0.12);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);font-size:14px;min-height:100vh}
+
+/* ── AUTH SCREEN ── */
+.auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--sage-dark);padding:20px}
+.auth-card{background:var(--paper);border-radius:20px;width:420px;max-width:100%;padding:40px;box-shadow:var(--shadow-md)}
+.auth-logo{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--sage-dark);margin-bottom:4px}
+.auth-sub{font-size:13px;color:var(--text-light);margin-bottom:32px}
+.auth-title{font-family:'DM Serif Display',serif;font-size:1.3rem;color:var(--text);margin-bottom:20px}
+.auth-switch{text-align:center;margin-top:20px;font-size:13px;color:var(--text-light)}
+.auth-switch a{color:var(--sage);cursor:pointer;text-decoration:underline}
+.auth-error{background:var(--red-bg);color:var(--red-soft);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:none}
+.auth-success{background:var(--green-bg);color:var(--green-soft);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:none}
+.auth-divider{text-align:center;color:var(--text-light);font-size:12px;margin:16px 0;position:relative}
+.auth-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--sand)}
+.auth-divider span{background:var(--paper);padding:0 12px;position:relative}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--sage-dark);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:50;overflow-y:auto}
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--paper);border-bottom:1px solid var(--sand);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40}
+.content{padding:28px;flex:1;background:var(--cream)}
+
+/* ── SIDEBAR ── */
+.sb-logo{padding:20px 16px 14px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.sb-logo-name{font-family:'DM Serif Display',serif;font-size:1.2rem;color:#fff;letter-spacing:0.02em;word-break:break-word}
+.sb-logo-sub{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase;margin-top:2px}
+.sb-section{padding:14px 12px 4px;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.35)}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:8px;margin:2px 8px;cursor:pointer;color:rgba(255,255,255,0.65);font-size:13px;transition:all 0.15s;border:none;background:none;width:calc(100% - 16px);text-align:left}
+.sb-item:hover{background:rgba(255,255,255,0.08);color:#fff}
+.sb-item.active{background:rgba(255,255,255,0.15);color:#fff}
+.sb-item svg{width:16px;height:16px;flex-shrink:0}
+.sb-bottom{margin-top:auto;padding:14px;border-top:1px solid rgba(255,255,255,0.08)}
+.sb-user{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.07);border-radius:8px;cursor:pointer}
+.sb-user:hover{background:rgba(255,255,255,0.12)}
+.sb-avatar{width:30px;height:30px;border-radius:50%;background:var(--sage-light);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#fff;flex-shrink:0}
+.sb-user-info{flex:1;min-width:0}
+.sb-user-name{font-size:12px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-user-role{font-size:10px;color:rgba(255,255,255,0.4)}
+.sb-currency{display:flex;gap:6px;margin-top:8px}
+.currency-badge{background:var(--sage);color:#fff;font-size:10px;font-weight:500;padding:3px 8px;border-radius:4px}
+
+/* ── TOPBAR ── */
+.page-title{font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.badge-notif{background:var(--mint);color:var(--sage-dark);font-size:11px;padding:4px 10px;border-radius:20px;font-weight:500;cursor:pointer}
+
+/* ── CARDS ── */
+.card{background:var(--paper);border:1px solid var(--sand);border-radius:var(--r-lg);padding:20px}
+.card-sm{background:var(--paper);border:1px solid var(--sand);border-radius:var(--r);padding:14px}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:var(--paper);border:1px solid var(--sand);border-radius:var(--r-lg);padding:18px 20px;border-left:3px solid var(--sage-light)}
+.stat-label{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-light);margin-bottom:8px}
+.stat-value{font-family:'DM Serif Display',serif;font-size:1.8rem;color:var(--text);line-height:1}
+.stat-sub{font-size:11px;color:var(--text-light);margin-top:6px}
+
+/* ── GRID ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.sec-title{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--text);margin-bottom:14px}
+.sec-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all 0.15s;font-family:'DM Sans',sans-serif}
+.btn-primary{background:var(--sage);color:#fff}
+.btn-primary:hover{background:var(--sage-light)}
+.btn-ghost{background:transparent;color:var(--text-mid);border:1px solid var(--sand-dark)}
+.btn-ghost:hover{background:var(--mint)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-danger{background:var(--red-bg);color:var(--red-soft);border:1px solid #e8c8c5}
+.btn-danger:hover{background:#f0d8d6}
+.btn-full{width:100%;justify-content:center}
+
+/* ── TABLES ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-light);padding:8px 12px;text-align:left;border-bottom:1px solid var(--sand)}
+td{padding:11px 12px;border-bottom:1px solid var(--mint);font-size:13px;color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(232,240,229,0.4)}
+.td-name{font-weight:500}
+.td-muted{color:var(--text-light)}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-green{background:var(--green-bg);color:var(--green-soft)}
+.badge-red{background:var(--red-bg);color:var(--red-soft)}
+.badge-amber{background:var(--amber-bg);color:var(--amber-soft)}
+.badge-sage{background:var(--mint-mid);color:var(--sage-dark)}
+
+/* ── FORMS ── */
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12px;color:var(--text-mid);margin-bottom:5px;font-weight:500}
+.form-input{width:100%;padding:9px 12px;border:1px solid var(--sand-dark);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--text);transition:border 0.15s}
+.form-input:focus{outline:none;border-color:var(--sage-light);box-shadow:0 0 0 3px rgba(107,143,98,0.12)}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%238a8a80' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.form-hint{font-size:11px;color:var(--text-light);margin-top:4px}
+
+/* ── VARIANTS ── */
+.variant-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:var(--mint);border:1px solid var(--mint-deep);border-radius:20px;font-size:12px;color:var(--sage-dark);margin:3px}
+.variant-tag .remove{cursor:pointer;opacity:0.5;font-size:14px;line-height:1}
+.variant-tag .remove:hover{opacity:1}
+
+/* ── MODALS ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(42,42,36,0.45);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal{background:var(--paper);border-radius:var(--r-lg);width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md);padding:28px}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--text)}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--text-light);font-size:22px;line-height:1;padding:2px 6px}
+.modal-close:hover{color:var(--text)}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--sand)}
+.hidden{display:none!important}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:4px;background:var(--mint);padding:4px;border-radius:10px;margin-bottom:20px}
+.tab{flex:1;padding:7px 10px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text-mid);text-align:center;transition:all 0.15s}
+.tab.active{background:var(--paper);color:var(--sage-dark);box-shadow:var(--shadow)}
+
+/* ── CAJA ── */
+.caja-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--mint)}
+.caja-row:last-child{border-bottom:none}
+.caja-total{background:var(--sage-dark);border-radius:var(--r);padding:16px 20px;display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+.caja-total-label{font-size:12px;color:rgba(255,255,255,0.5)}
+.caja-total-value{font-family:'DM Serif Display',serif;font-size:1.5rem;color:#fff}
+
+/* ── WEB AREA ── */
+.web-preview{background:#f0f4ee;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--mint-deep);margin-top:16px}
+.web-header-preview{background:var(--sage-dark);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.web-product-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#fff;border-radius:8px;margin:6px 16px;border:1px solid var(--mint-deep)}
+.web-url-box{background:var(--mint);border:1px solid var(--mint-deep);border-radius:10px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.web-url-text{font-size:13px;color:var(--sage-dark);font-weight:500}
+
+/* ── PRODUCT ROW ── */
+.product-icon{width:34px;height:34px;background:var(--mint-mid);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+
+/* ── PAGES ── */
+.page{display:none}
+.page.active{display:block}
+
+/* ── PROFILE ── */
+.profile-avatar-big{width:72px;height:72px;border-radius:50%;background:var(--sage-light);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:500;color:#fff;margin-bottom:16px;cursor:pointer;border:3px solid var(--mint-deep)}
+.profile-section{margin-bottom:28px}
+
+/* ── BAR CHART ── */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px}
+.bar{flex:1;background:var(--mint-mid);border-radius:4px 4px 0 0;transition:background 0.2s;cursor:pointer}
+.bar:hover{background:var(--sage-light)}
+.bar-labels{display:flex;gap:6px;margin-top:4px}
+.bar-label{flex:1;font-size:10px;color:var(--text-light);text-align:center}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--sand);margin:20px 0}
+
+/* ── LOADING ── */
+.loading-screen{position:fixed;inset:0;background:var(--sage-dark);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column;gap:12px}
+.loading-logo{font-family:'DM Serif Display',serif;font-size:2.5rem;color:#fff}
+.loading-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.4);display:inline-block;animation:pulse 1.2s ease-in-out infinite}
+.loading-dot:nth-child(2){animation-delay:0.2s}
+.loading-dot:nth-child(3){animation-delay:0.4s}
+@keyframes pulse{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--mint-deep);border-radius:10px}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-screen" id="loading-screen">
+  <div class="loading-logo">StockPoint</div>
+  <div style="display:flex;gap:6px">
+    <span class="loading-dot"></span>
+    <span class="loading-dot"></span>
+    <span class="loading-dot"></span>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div class="auth-screen hidden" id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">StockPoint</div>
+    <div class="auth-sub">Sistema de gestión</div>
+
+    <!-- LOGIN -->
+    <div id="auth-login">
+      <div class="auth-title">Iniciar sesión</div>
+      <div class="auth-error" id="login-error"></div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="login-email" placeholder="tu@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <input type="password" class="form-input" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">Ingresar</button>
+      <div class="auth-divider"><span>o</span></div>
+      <div class="auth-switch">
+        ¿No tenés cuenta? <a onclick="showAuth('register')">Crear cuenta</a>
+        &nbsp;·&nbsp; <a onclick="showAuth('reset')">Olvidé mi contraseña</a>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="auth-register" class="hidden">
+      <div class="auth-title">Crear cuenta</div>
+      <div class="auth-error" id="reg-error"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input type="text" class="form-input" id="reg-nombre" placeholder="Tu nombre">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apellido</label>
+          <input type="text" class="form-input" id="reg-apellido" placeholder="Tu apellido">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre de la empresa *</label>
+        <input type="text" class="form-input" id="reg-empresa" placeholder="Ej: Mi Tienda">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input type="email" class="form-input" id="reg-email" placeholder="tu@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña *</label>
+        <input type="password" class="form-input" id="reg-pass" placeholder="Mínimo 6 caracteres">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doRegister()">Crear cuenta</button>
+      <div class="auth-switch">¿Ya tenés cuenta? <a onclick="showAuth('login')">Iniciar sesión</a></div>
+    </div>
+
+    <!-- RESET -->
+    <div id="auth-reset" class="hidden">
+      <div class="auth-title">Recuperar contraseña</div>
+      <div class="auth-error" id="reset-error"></div>
+      <div class="auth-success" id="reset-success"></div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-input" id="reset-email" placeholder="tu@email.com">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="doReset()">Enviar email de recuperación</button>
+      <div class="auth-switch"><a onclick="showAuth('login')">← Volver al login</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app hidden" id="app-screen">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-name" id="sb-empresa-nombre">Mi Empresa</div>
+      <div class="sb-logo-sub">Gestión</div>
+    </div>
+
+    <div class="sb-section">Principal</div>
+    <button class="sb-item active" onclick="goTo('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </button>
+
+    <div class="sb-section">Stock</div>
+    <button class="sb-item" onclick="goTo('stock',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+      Productos
+    </button>
+    <button class="sb-item" onclick="goTo('valoracion',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      Valoración
+    </button>
+
+    <div class="sb-section">Finanzas</div>
+    <button class="sb-item" onclick="goTo('ventas',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      Ventas
+    </button>
+    <button class="sb-item" onclick="goTo('presupuestos',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+      Presupuestos
+    </button>
+    <button class="sb-item" onclick="goTo('caja',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+      Caja
+    </button>
+    <button class="sb-item" onclick="goTo('gastos',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Gastos
+    </button>
+
+    <div class="sb-section">Empresa</div>
+    <button class="sb-item" onclick="goTo('webpublica',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+      Web pública
+    </button>
+    <button class="sb-item" onclick="goTo('perfil',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Mi cuenta
+    </button>
+
+    <div class="sb-bottom">
+      <div class="sb-user" onclick="goTo('perfil',null)">
+        <div class="sb-avatar" id="sb-avatar">?</div>
+        <div class="sb-user-info">
+          <div class="sb-user-name" id="sb-user-name">Usuario</div>
+          <div class="sb-user-role" id="sb-user-email">—</div>
+        </div>
+      </div>
+      <div class="sb-currency" style="margin-top:8px">
+        <span class="currency-badge">ARS</span>
+        <span class="currency-badge" style="background:var(--gold)">USD</span>
+        <button onclick="doLogout()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.35);font-size:11px;cursor:pointer">Salir</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="topbar-right">
+        <span class="badge-notif" id="stock-alert-badge" onclick="goTo('stock',null)">Stock OK</span>
+        <button class="btn btn-primary btn-sm" id="topbar-btn" onclick="handleTopBtn()">+ Nuevo</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page active">
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">Caja actual</div><div class="stat-value" id="dash-caja">$0</div><div class="stat-sub">ARS</div></div>
+          <div class="stat-card"><div class="stat-label">Ventas del mes</div><div class="stat-value" id="dash-ventas">0</div><div class="stat-sub" id="dash-ventas-sub">aprobadas</div></div>
+          <div class="stat-card"><div class="stat-label">Stock total</div><div class="stat-value" id="dash-stock">0</div><div class="stat-sub" id="dash-stock-sub">unidades</div></div>
+          <div class="stat-card"><div class="stat-label">Presupuestos</div><div class="stat-value" id="dash-pres">0</div><div class="stat-sub" style="color:var(--amber-soft)" id="dash-pres-sub">pendientes</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="sec-row"><div class="sec-title">Últimas ventas</div><button class="btn btn-ghost btn-sm" onclick="goTo('ventas',null)">Ver todas →</button></div>
+            <div class="table-wrap"><table><tr><th>Cliente</th><th>Producto</th><th>Total</th><th>Estado</th></tr><tbody id="dash-ventas-table"></tbody></table></div>
+          </div>
+          <div class="card">
+            <div class="sec-row"><div class="sec-title">Stock bajo</div><button class="btn btn-ghost btn-sm" onclick="goTo('stock',null)">Ver stock →</button></div>
+            <div id="dash-stock-low"></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:20px">
+          <div class="sec-title">Ventas de la semana</div>
+          <div class="bar-chart" id="dash-chart"></div>
+          <div class="bar-labels" id="dash-chart-labels"></div>
+        </div>
+      </div>
+
+      <!-- STOCK -->
+      <div id="page-stock" class="page">
+        <div class="sec-row">
+          <div class="sec-title">Productos en stock</div>
+          <button class="btn btn-primary" onclick="openModal('modal-producto')">+ Agregar producto</button>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:10px;margin-bottom:16px">
+            <input type="text" class="form-input" placeholder="Buscar producto..." style="max-width:280px" oninput="filterProducts(this.value)">
+            <select class="form-input form-select" style="max-width:160px" onchange="filterCat(this.value)" id="cat-filter">
+              <option value="">Todas las categorías</option>
+            </select>
+          </div>
+          <div class="table-wrap">
+            <table><tr><th>Producto</th><th>Categoría</th><th>Variantes</th><th>Stock</th><th>Costo</th><th>Venta</th><th>Acciones</th></tr>
+            <tbody id="stock-table-body"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VALORACIÓN -->
+      <div id="page-valoracion" class="page">
+        <div class="sec-title">Valoración del stock</div>
+        <div class="grid-2" style="margin-bottom:20px">
+          <div class="stat-card"><div class="stat-label">Valor total a costo</div><div class="stat-value" id="val-costo">$0</div><div class="stat-sub">Precio de compra × stock</div></div>
+          <div class="stat-card"><div class="stat-label">Valor potencial de venta</div><div class="stat-value" id="val-venta">$0</div><div class="stat-sub">Precio de venta × stock</div></div>
+        </div>
+        <div class="card">
+          <div class="sec-title">Detalle por producto</div>
+          <div class="table-wrap"><table><tr><th>Producto</th><th>Stock</th><th>Costo unit.</th><th>Precio venta</th><th>Valor a costo</th><th>Valor venta</th><th>Margen</th></tr>
+          <tbody id="valoracion-body"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- VENTAS -->
+      <div id="page-ventas" class="page">
+        <div class="sec-row">
+          <div class="sec-title">Ventas</div>
+          <button class="btn btn-primary" onclick="openModal('modal-venta')">+ Registrar venta</button>
+        </div>
+        <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat-card"><div class="stat-label">Total del mes</div><div class="stat-value" id="v-total-mes">$0</div></div>
+          <div class="stat-card"><div class="stat-label">Aprobadas</div><div class="stat-value" style="color:var(--green-soft)" id="v-aprobadas">0</div></div>
+          <div class="stat-card"><div class="stat-label">Rechazadas</div><div class="stat-value" style="color:var(--red-soft)" id="v-rechazadas">0</div></div>
+        </div>
+        <div class="card">
+          <div class="table-wrap"><table>
+            <tr><th>Fecha</th><th>Cliente</th><th>Producto</th><th>Cant.</th><th>Total</th><th>Moneda</th><th>Estado</th><th>Acciones</th></tr>
+            <tbody id="ventas-body"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- PRESUPUESTOS -->
+      <div id="page-presupuestos" class="page">
+        <div class="sec-row">
+          <div class="sec-title">Presupuestos</div>
+          <button class="btn btn-primary" onclick="openModal('modal-presupuesto')">+ Nuevo presupuesto</button>
+        </div>
+        <div class="card">
+          <div class="tabs">
+            <button class="tab active" onclick="filterPres('todos',this)">Todos</button>
+            <button class="tab" onclick="filterPres('pendiente',this)">Pendientes</button>
+            <button class="tab" onclick="filterPres('aprobado',this)">Aprobados</button>
+            <button class="tab" onclick="filterPres('rechazado',this)">Rechazados</button>
+          </div>
+          <div class="table-wrap"><table>
+            <tr><th>#</th><th>Cliente</th><th>Descripción</th><th>Total</th><th>Entrega</th><th>Estado</th><th>Acciones</th></tr>
+            <tbody id="pres-body"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- CAJA -->
+      <div id="page-caja" class="page">
+        <div class="grid-2">
+          <div class="card">
+            <div class="sec-title">Movimientos de caja</div>
+            <div id="caja-movs" style="max-height:360px;overflow-y:auto"></div>
+            <div class="caja-total">
+              <div><div class="caja-total-label">Saldo disponible</div><div class="caja-total-value" id="caja-saldo">$0</div></div>
+              <div style="text-align:right"><div class="caja-total-label">Cotización USD</div><div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px">$<span id="caja-tc">1000</span>/USD</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="sec-title">Registrar movimiento</div>
+            <div class="form-group"><label class="form-label">Tipo</label>
+              <select class="form-input form-select" id="caja-tipo"><option>Ingreso</option><option>Egreso</option></select></div>
+            <div class="form-group"><label class="form-label">Descripción</label>
+              <input type="text" class="form-input" id="caja-desc" placeholder="Ej: Pago proveedor"></div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Monto</label>
+                <input type="number" class="form-input" id="caja-monto" placeholder="0"></div>
+              <div class="form-group"><label class="form-label">Moneda</label>
+                <select class="form-input form-select" id="caja-moneda"><option>ARS</option><option>USD</option></select></div>
+            </div>
+            <div class="form-group"><label class="form-label">Cotización USD (ARS por 1 USD)</label>
+              <input type="number" class="form-input" id="caja-tc-input" placeholder="1000" value="1000"></div>
+            <button class="btn btn-primary btn-full" onclick="addCajaMovimiento()">Registrar movimiento</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- GASTOS -->
+      <div id="page-gastos" class="page">
+        <div class="grid-2">
+          <div class="card">
+            <div class="sec-title">Gastos por categoría</div>
+            <div id="gastos-list"></div>
+            <div class="divider"></div>
+            <div style="display:flex;justify-content:space-between;font-weight:500">
+              <span>Total gastos</span><span style="color:var(--red-soft)" id="gastos-total">$0</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="sec-title">Registrar gasto</div>
+            <div class="form-group"><label class="form-label">Categoría</label>
+              <select class="form-input form-select" id="gasto-cat">
+                <option>Proveedores</option><option>Alquiler</option><option>Servicios</option><option>Marketing</option><option>Personal</option><option>Otro</option>
+              </select></div>
+            <div class="form-group"><label class="form-label">Descripción</label>
+              <input type="text" class="form-input" id="gasto-desc" placeholder="Detalle del gasto"></div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Monto</label>
+                <input type="number" class="form-input" id="gasto-monto" placeholder="0"></div>
+              <div class="form-group"><label class="form-label">Moneda</label>
+                <select class="form-input form-select" id="gasto-moneda"><option>ARS</option><option>USD</option></select></div>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="addGasto()">Guardar gasto</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEB PÚBLICA -->
+      <div id="page-webpublica" class="page">
+        <div class="sec-row">
+          <div class="sec-title">Web pública</div>
+          <span class="badge badge-green">Sincronizado con stock</span>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:20px">
+          <div class="card">
+            <div class="sec-title">Configuración de la web</div>
+            <div class="form-group">
+              <label class="form-label">URL de tu página web</label>
+              <input type="url" class="form-input" id="web-url-input" placeholder="https://mitienda.com">
+              <div class="form-hint">Pegá aquí el link de tu web cuando esté lista</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nombre que aparece en la web</label>
+              <input type="text" class="form-input" id="web-nombre-input" placeholder="Mi Tienda">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Descripción breve</label>
+              <input type="text" class="form-input" id="web-desc-input" placeholder="Ej: Indumentaria de calidad">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mostrar precios en la web</label>
+              <select class="form-input form-select" id="web-precios">
+                <option value="si">Sí, mostrar precios</option>
+                <option value="no">No mostrar precios</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="saveWebConfig()">Guardar configuración</button>
+          </div>
+
+          <div class="card">
+            <div class="sec-title">Estado de la web</div>
+            <div id="web-url-display" style="margin-bottom:16px">
+              <div class="form-hint" style="margin-bottom:8px">Aún no configuraste una URL</div>
+            </div>
+            <div class="form-hint" style="margin-bottom:12px">Vista previa del catálogo que verán tus clientes:</div>
+            <div class="web-preview">
+              <div class="web-header-preview">
+                <div style="font-family:'DM Serif Display',serif;color:#fff;font-size:1rem" id="web-preview-nombre">Mi Tienda</div>
+                <div style="font-size:11px;color:rgba(255,255,255,0.5)" id="web-preview-desc">Catálogo</div>
+              </div>
+              <div style="padding:10px 0" id="web-product-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERFIL -->
+      <div id="page-perfil" class="page">
+        <div class="grid-2">
+          <div class="card">
+            <div class="sec-title">Mi perfil</div>
+            <div style="display:flex;flex-direction:column;align-items:flex-start">
+              <div class="profile-avatar-big" id="perfil-avatar" title="Click para cambiar emoji">?</div>
+              <div class="form-hint" style="margin-bottom:16px">Click en el avatar para cambiar emoji</div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Nombre</label>
+                <input type="text" class="form-input" id="perfil-nombre" placeholder="Tu nombre"></div>
+              <div class="form-group"><label class="form-label">Apellido</label>
+                <input type="text" class="form-input" id="perfil-apellido" placeholder="Tu apellido"></div>
+            </div>
+            <div class="form-group"><label class="form-label">Email</label>
+              <input type="email" class="form-input" id="perfil-email" placeholder="tu@email.com" disabled style="opacity:0.6"></div>
+            <div class="form-group"><label class="form-label">Rol / Cargo</label>
+              <input type="text" class="form-input" id="perfil-rol" placeholder="Ej: Administrador"></div>
+            <button class="btn btn-primary" onclick="saveProfile()">Guardar perfil</button>
+            <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--sand)">
+              <div class="form-group"><label class="form-label">Nueva contraseña</label>
+                <input type="password" class="form-input" id="perfil-pass" placeholder="Nueva contraseña (mín. 6 caracteres)"></div>
+              <button class="btn btn-ghost" onclick="changePassword()">Cambiar contraseña</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="sec-title">Configuración de empresa</div>
+            <div class="form-group"><label class="form-label">Nombre de la empresa</label>
+              <input type="text" class="form-input" id="empresa-nombre" placeholder="Nombre de tu empresa"></div>
+            <div class="form-group"><label class="form-label">Rubro / Industria</label>
+              <input type="text" class="form-input" id="empresa-rubro" placeholder="Ej: Indumentaria, Gastronomía"></div>
+            <div class="form-group"><label class="form-label">CUIT / RUT</label>
+              <input type="text" class="form-input" id="empresa-cuit" placeholder="20-12345678-9"></div>
+            <div class="form-group"><label class="form-label">Dirección</label>
+              <input type="text" class="form-input" id="empresa-dir" placeholder="Calle y número"></div>
+            <div class="form-group"><label class="form-label">Teléfono</label>
+              <input type="text" class="form-input" id="empresa-tel" placeholder="+54 11 1234-5678"></div>
+            <div class="form-group"><label class="form-label">Moneda principal</label>
+              <select class="form-input form-select" id="empresa-moneda"><option>ARS</option><option>USD</option><option>Ambas</option></select></div>
+            <div class="form-group"><label class="form-label">Color de acento (hex)</label>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="color" id="empresa-color" value="#4a6741" style="width:44px;height:36px;border:1px solid var(--sand-dark);border-radius:8px;cursor:pointer;padding:2px">
+                <input type="text" class="form-input" id="empresa-color-text" value="#4a6741" style="max-width:120px">
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="saveEmpresa()">Guardar empresa</button>
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--sand)">
+              <button class="btn btn-danger btn-sm" onclick="doLogout()">Cerrar sesión</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODALES -->
+
+<!-- Modal Producto -->
+<div id="modal-producto" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Agregar producto</div><button class="modal-close" onclick="closeModal('modal-producto')">×</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nombre *</label><input type="text" class="form-input" id="prod-nombre" placeholder="Ej: Remera básica"></div>
+      <div class="form-group"><label class="form-label">Categoría</label><input type="text" class="form-input" id="prod-cat" placeholder="Ej: Indumentaria"></div>
+    </div>
+    <div class="form-row-3">
+      <div class="form-group"><label class="form-label">Stock *</label><input type="number" class="form-input" id="prod-qty" placeholder="0" min="0"></div>
+      <div class="form-group"><label class="form-label">Precio costo</label><input type="number" class="form-input" id="prod-costo" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Precio venta</label><input type="number" class="form-input" id="prod-precio-venta" placeholder="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Moneda</label><select class="form-input form-select" id="prod-moneda"><option>ARS</option><option>USD</option></select></div>
+      <div class="form-group"><label class="form-label">Emoji / ícono</label><input type="text" class="form-input" id="prod-emoji" placeholder="📦" style="max-width:80px"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Variantes</label>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input type="text" class="form-input" id="variant-key" placeholder="Tipo (ej: Color)" style="max-width:140px">
+        <input type="text" class="form-input" id="variant-val" placeholder="Valor (ej: Rojo)">
+        <button class="btn btn-ghost btn-sm" onclick="addVariant()">+ Agregar</button>
+      </div>
+      <div id="variants-container" style="min-height:30px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-producto')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveProducto()">Guardar producto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Venta -->
+<div id="modal-venta" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Registrar venta</div><button class="modal-close" onclick="closeModal('modal-venta')">×</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Cliente</label><input type="text" class="form-input" id="venta-cliente" placeholder="Nombre del cliente"></div>
+      <div class="form-group"><label class="form-label">Producto</label><select class="form-input form-select" id="venta-producto"></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Cantidad</label><input type="number" class="form-input" id="venta-qty" value="1" min="1"></div>
+      <div class="form-group"><label class="form-label">Precio total</label><input type="number" class="form-input" id="venta-total" placeholder="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Moneda</label><select class="form-input form-select" id="venta-moneda"><option>ARS</option><option>USD</option></select></div>
+      <div class="form-group"><label class="form-label">Estado</label><select class="form-input form-select" id="venta-estado"><option>Aprobada</option><option>Pendiente</option><option>Rechazada</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-venta')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveVenta()">Registrar venta</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Presupuesto -->
+<div id="modal-presupuesto" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Nuevo presupuesto</div><button class="modal-close" onclick="closeModal('modal-presupuesto')">×</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Cliente *</label><input type="text" class="form-input" id="pres-cliente" placeholder="Nombre del cliente"></div>
+      <div class="form-group"><label class="form-label">Descripción</label><input type="text" class="form-input" id="pres-desc" placeholder="Detalle del pedido"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Total</label><input type="number" class="form-input" id="pres-total" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Moneda</label><select class="form-input form-select" id="pres-moneda"><option>ARS</option><option>USD</option></select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Fecha de entrega</label><input type="date" class="form-input" id="pres-fecha"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-presupuesto')">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePresupuesto()">Crear presupuesto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Avatar -->
+<div id="modal-avatar" class="modal-overlay hidden">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header"><div class="modal-title">Elegí tu avatar</div><button class="modal-close" onclick="closeModal('modal-avatar')">×</button></div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;padding:8px 0">
+      <span style="font-size:28px;cursor:pointer;padding:6px;border-radius:8px" onclick="setAvatar('😀')">😀</span>
+      <span style="font-size:28px;cursor:pointer;padding:6px;border-radius:8px" onclick="setAvatar('🧑‍💼')">🧑‍💼</span>
+      <span style="font-size:28px;cursor:pointer;padding:6px;border-radius:8px" onclick="setAvatar('👩‍💼')">👩‍💼</span>
+      <span style="font-size:28px;cursor:pointer;padding:6px;border-radius:8px" onclick="setAvatar('🧑‍🌾')">🧑‍🌾</span>
+      <span style="font-size:28px;cursor:pointer;padding:6px;border-radius:8px" onclick="setAvatar('🦁')">🦁</span>
+      <span style="font-size:28px;cursor:pointer;padding:6px;border-radius:8px" onclick="setAvatar('🐻')">🐻</span>
+      <span style="font-size:28px;cursor:pointer;padding:6px;border-radius:8px" onclick="setAvatar('🌿')">🌿</span>
+      <span style="font-size:28px;cursor:pointer;padding:6px;border-radius:8px" onclick="setAvatar('⭐')">⭐</span>
+      <span style="font-size:28px;cursor:pointer;padding:6px;border-radius:8px" onclick="setAvatar('🚀')">🚀</span>
+      <span style="font-size:28px;cursor:pointer;padding:6px;border-radius:8px" onclick="setAvatar('💼')">💼</span>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE + LÓGICA -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, updatePassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, collection, addDoc, getDocs, deleteDoc, updateDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD_tJExvUlT7_04X4Ho6jh4L-XOCu8gakg",
+  authDomain: "stock-point-b7b48.firebaseapp.com",
+  projectId: "stock-point-b7b48",
+  storageBucket: "stock-point-b7b48.firebasestorage.app",
+  messagingSenderId: "188429322115",
+  appId: "1:188429322115:web:5c8ef4c9384327107658b6",
+  measurementId: "G-X0YCW702M0"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ─── STATE ───
+let currentUser = null;
+let userData = {};
+let state = { productos:[], ventas:[], presupuestos:[], caja:[], gastos:[], webConfig:{}, variants_temp:[], presFilter:'todos' };
+let unsubs = [];
+
+function uid() { return currentUser?.uid; }
+function col(name) { return collection(db, 'users', uid(), name); }
+function docRef(name, id) { return doc(db, 'users', uid(), name, id); }
+function userDoc() { return doc(db, 'users', uid()); }
+
+// ─── AUTH STATE ───
+onAuthStateChanged(auth, async user => {
+
+  document.getElementById('loading-screen').classList.add('hidden');
+
+  try {
+
+    if (user) {
+
+      currentUser = user;
+
+      await loadUserData();
+
+      subscribeAll();
+
+      document.getElementById('auth-screen').classList.add('hidden');
+      document.getElementById('app-screen').classList.remove('hidden');
+
+      updateSidebar();
+      renderDashboard();
+
+    } else {
+
+      currentUser = null;
+
+      unsubs.forEach(u => u());
+
+      document.getElementById('auth-screen').classList.remove('hidden');
+      document.getElementById('app-screen').classList.add('hidden');
+    }
+
+  } catch (e) {
+
+    console.error('ERROR AUTH:', e);
+
+    alert('Error cargando la aplicación. Revisá la consola.');
+  }
+});
+
+async function loadUserData() {
+  const snap = await getDoc(userDoc());
+  if (snap.exists()) {
+    userData = snap.data();
+  }
+}
+
+function updateSidebar() {
+  const nombre = userData.nombre || currentUser.email.split('@')[0];
+  const empresa = userData.empresa?.nombre || 'Mi Empresa';
+  document.getElementById('sb-empresa-nombre').textContent = empresa;
+  document.getElementById('sb-user-name').textContent = `${userData.nombre||''} ${userData.apellido||''}`.trim() || nombre;
+  document.getElementById('sb-user-email').textContent = currentUser.email;
+  document.getElementById('sb-avatar').textContent = userData.avatar || nombre[0].toUpperCase();
+  document.getElementById('perfil-avatar').textContent = userData.avatar || nombre[0].toUpperCase();
+  fillPerfilForm();
+  fillEmpresaForm();
+  if (userData.empresa?.color) applyAccentColor(userData.empresa.color);
+}
+
+function fillPerfilForm() {
+  document.getElementById('perfil-nombre').value = userData.nombre || '';
+  document.getElementById('perfil-apellido').value = userData.apellido || '';
+  document.getElementById('perfil-email').value = currentUser.email;
+  document.getElementById('perfil-rol').value = userData.rol || '';
+}
+
+function fillEmpresaForm() {
+  const e = userData.empresa || {};
+  document.getElementById('empresa-nombre').value = e.nombre || '';
+  document.getElementById('empresa-rubro').value = e.rubro || '';
+  document.getElementById('empresa-cuit').value = e.cuit || '';
+  document.getElementById('empresa-dir').value = e.direccion || '';
+  document.getElementById('empresa-tel').value = e.telefono || '';
+  if(e.color) { document.getElementById('empresa-color').value=e.color; document.getElementById('empresa-color-text').value=e.color; }
+}
+
+function applyAccentColor(hex) {
+  document.documentElement.style.setProperty('--sage', hex);
+  document.documentElement.style.setProperty('--sage-light', hex+'cc');
+}
+
+// ─── REALTIME SUBSCRIPTIONS ───
+function subscribeAll() {
+  unsubs.forEach(u=>u());
+  unsubs = [];
+  const subscribe = (name, stateKey, cb) => {
+    const q = query(col(name));
+    const unsub = onSnapshot(q, snap => {
+      state[stateKey] = snap.docs.map(d=>({id:d.id,...d.data()}));
+      if(cb) cb();
+    });
+    unsubs.push(unsub);
+  };
+  subscribe('productos','productos',()=>{ renderStock(); renderValoracion(); renderDashboard(); updateWebPreview(); updateCatFilter(); });
+  subscribe('ventas','ventas',()=>{ renderVentas(); renderDashboard(); });
+  subscribe('presupuestos','presupuestos',()=>{ renderPresupuestos(); renderDashboard(); });
+  subscribe('caja','caja',()=>{ renderCaja(); renderDashboard(); });
+  subscribe('gastos','gastos',()=>{ renderGastos(); });
+}
+
+// ─── AUTH ACTIONS ───
+window.showAuth = (view) => {
+  ['login','register','reset'].forEach(v=>document.getElementById('auth-'+v).classList.add('hidden'));
+  document.getElementById('auth-'+view).classList.remove('hidden');
+};
+
+window.doLogin = async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  try {
+    err.style.display='none';
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    err.textContent = e.code==='auth/invalid-credential'?'Email o contraseña incorrectos':e.message;
+    err.style.display='block';
+  }
+};
+
+window.doRegister = async () => {
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const apellido = document.getElementById('reg-apellido').value.trim();
+  const empresa = document.getElementById('reg-empresa').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const err = document.getElementById('reg-error');
+  if(!nombre||!empresa||!email||!pass){err.textContent='Completá todos los campos obligatorios';err.style.display='block';return;}
+  try {
+    err.style.display='none';
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await setDoc(doc(db,'users',cred.user.uid), { nombre, apellido, rol:'Administrador', avatar:'🧑‍💼', empresa:{ nombre:empresa, rubro:'', cuit:'', direccion:'', telefono:'', color:'#4a6741' }, creadoEn: new Date().toISOString() });
+  } catch(e) {
+    err.textContent = e.code==='auth/email-already-in-use'?'Ese email ya está registrado':e.message;
+    err.style.display='block';
+  }
+};
+
+window.doReset = async () => {
+  const email = document.getElementById('reset-email').value.trim();
+  const err = document.getElementById('reset-error');
+  const ok = document.getElementById('reset-success');
+  try {
+    err.style.display='none';
+    await sendPasswordResetEmail(auth, email);
+    ok.textContent='Te enviamos un email para restablecer tu contraseña.';
+    ok.style.display='block';
+  } catch(e) {
+    err.textContent=e.message; err.style.display='block';
+  }
+};
+
+window.doLogout = async () => { await signOut(auth); };
+
+// ─── NAVIGATION ───
+window.goTo = (page, btn) => {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(btn){ document.querySelectorAll('.sb-item').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+  const titles={dashboard:'Dashboard',stock:'Productos',valoracion:'Valoración de stock',ventas:'Ventas',presupuestos:'Presupuestos',caja:'Estado de caja',gastos:'Gastos',webpublica:'Web pública',perfil:'Mi cuenta'};
+  document.getElementById('page-title').textContent = titles[page]||page;
+  if(page==='webpublica') renderWebConfig();
+  if(page==='perfil') fillPerfilForm();
+};
+
+window.handleTopBtn = () => {
+  const p = document.querySelector('.page.active').id.replace('page-','');
+  if(p==='stock') openModal('modal-producto');
+  else if(p==='ventas') openModal('modal-venta');
+  else if(p==='presupuestos') openModal('modal-presupuesto');
+};
+
+// ─── MODALS ───
+window.openModal = (id) => {
+  if(id==='modal-venta') populateVentaSelect();
+  document.getElementById(id).classList.remove('hidden');
+};
+window.closeModal = (id) => { document.getElementById(id).classList.add('hidden'); };
+
+// ─── UTILS ───
+const fmt = n => '$'+parseInt(n||0).toLocaleString('es-AR');
+const fmtM = (n,m) => m==='USD'?'USD '+parseInt(n||0).toLocaleString('es-AR'):fmt(n);
+const today = () => new Date().toISOString().split('T')[0];
+
+// ─── DASHBOARD ───
+function renderDashboard() {
+  // Caja
+  let saldo=0;
+  state.caja.forEach(m=>{ if(m.tipo==='Ingreso') saldo+=Number(m.monto); else saldo-=Number(m.monto); });
+  document.getElementById('dash-caja').textContent = fmt(saldo);
+
+  // Ventas
+  const aprobadas = state.ventas.filter(v=>v.estado==='Aprobada');
+  document.getElementById('dash-ventas').textContent = aprobadas.length;
+  document.getElementById('dash-ventas-sub').textContent = 'aprobadas este mes';
+
+  // Stock
+  const totalStock = state.productos.reduce((a,p)=>a+Number(p.qty||0),0);
+  const bajos = state.productos.filter(p=>Number(p.qty||0)<=5);
+  document.getElementById('dash-stock').textContent = totalStock;
+  document.getElementById('dash-stock-sub').textContent = bajos.length>0?`${bajos.length} productos bajos`:'stock OK';
+  const badge = document.getElementById('stock-alert-badge');
+  badge.textContent = bajos.length>0?`${bajos.length} alertas de stock`:'Stock OK';
+  badge.style.background = bajos.length>0?'var(--red-bg)':'var(--mint)';
+  badge.style.color = bajos.length>0?'var(--red-soft)':'var(--sage-dark)';
+
+  // Presupuestos
+  const pend = state.presupuestos.filter(p=>p.estado==='pendiente');
+  document.getElementById('dash-pres').textContent = pend.length;
+
+  // Últimas ventas
+  document.getElementById('dash-ventas-table').innerHTML = state.ventas.slice(0,4).map(v=>`
+    <tr><td class="td-name">${v.cliente}</td><td class="td-muted">${v.producto}</td><td>${fmtM(v.total,v.moneda)}</td>
+    <td><span class="badge ${v.estado==='Aprobada'?'badge-green':v.estado==='Rechazada'?'badge-red':'badge-amber'}">${v.estado}</span></td></tr>`).join('');
+
+  // Stock bajo
+  document.getElementById('dash-stock-low').innerHTML = bajos.length===0
+    ? '<div style="color:var(--text-light);font-size:13px;padding:12px 0">Todo el stock está OK ✓</div>'
+    : bajos.map(p=>`<div class="caja-row"><div style="display:flex;align-items:center;gap:8px"><span>${p.emoji||'📦'}</span><div><div style="font-size:13px;font-weight:500">${p.nombre}</div><div style="font-size:11px;color:var(--text-light)">${p.cat||''}</div></div></div><div style="font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--red-soft)">${p.qty}</div></div>`).join('');
+
+  renderDashChart();
+}
+
+function renderDashChart() {
+  const days=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  const vals=[45,80,35,90,65,120,75];
+  const max=Math.max(...vals);
+  document.getElementById('dash-chart').innerHTML = vals.map(v=>`<div class="bar" style="height:${Math.round(v/max*100)}%"></div>`).join('');
+  document.getElementById('dash-chart-labels').innerHTML = days.map(d=>`<div class="bar-label">${d}</div>`).join('');
+}
+
+// ─── STOCK ───
+function renderStock(filter='', catFilter='') {
+  let data = state.productos;
+  if(filter) data = data.filter(p=>p.nombre.toLowerCase().includes(filter.toLowerCase()));
+  if(catFilter) data = data.filter(p=>p.cat===catFilter);
+  document.getElementById('stock-table-body').innerHTML = data.map(p=>`
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:8px"><span>${p.emoji||'📦'}</span><span class="td-name">${p.nombre}</span></div></td>
+      <td class="td-muted">${p.cat||'—'}</td>
+      <td>${(p.variantes||[]).map(v=>`<span class="variant-tag">${v.key}: ${v.val}</span>`).join('')||'<span class="td-muted">—</span>'}</td>
+      <td><span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:${Number(p.qty)<=5?'var(--red-soft)':'var(--sage)'}">${p.qty}</span></td>
+      <td class="td-muted">${fmtM(p.costo,p.moneda)}</td>
+      <td class="td-muted">${fmtM(p.precioVenta,p.moneda)}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteProduct('${p.id}')">Eliminar</button></td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-light);padding:24px">No hay productos cargados</td></tr>';
+}
+
+function updateCatFilter() {
+  const cats = [...new Set(state.productos.map(p=>p.cat).filter(Boolean))];
+  const sel = document.getElementById('cat-filter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Todas las categorías</option>' + cats.map(c=>`<option value="${c}" ${c===cur?'selected':''}>${c}</option>`).join('');
+}
+
+window.filterProducts = v => renderStock(v, document.getElementById('cat-filter').value);
+window.filterCat = v => renderStock(document.getElementById('cat-filter')?.previousElementSibling?.value||'', v);
+
+window.deleteProduct = async (id) => {
+  if(!confirm('¿Eliminar este producto?')) return;
+  await deleteDoc(docRef('productos', id));
+};
+
+// VARIANTS
+window.addVariant = () => {
+  const k=document.getElementById('variant-key').value.trim();
+  const v=document.getElementById('variant-val').value.trim();
+  if(!k||!v) return;
+  state.variants_temp.push({key:k,val:v});
+  renderVariantTags();
+  document.getElementById('variant-key').value='';
+  document.getElementById('variant-val').value='';
+};
+function renderVariantTags() {
+  document.getElementById('variants-container').innerHTML = state.variants_temp.map((v,i)=>
+    `<span class="variant-tag">${v.key}: ${v.val} <span class="remove" onclick="removeVariant(${i})">×</span></span>`).join('');
+}
+window.removeVariant = (i) => { state.variants_temp.splice(i,1); renderVariantTags(); };
+
+window.saveProducto = async () => {
+  const nombre = document.getElementById('prod-nombre').value.trim();
+  if(!nombre){alert('El nombre es obligatorio');return;}
+  await addDoc(col('productos'), {
+    nombre,
+    cat: document.getElementById('prod-cat').value||'',
+    qty: parseInt(document.getElementById('prod-qty').value)||0,
+    costo: parseInt(document.getElementById('prod-costo').value)||0,
+    precioVenta: parseInt(document.getElementById('prod-precio-venta').value)||0,
+    moneda: document.getElementById('prod-moneda').value,
+    emoji: document.getElementById('prod-emoji').value||'📦',
+    variantes: [...state.variants_temp],
+    creadoEn: today()
+  });
+  state.variants_temp=[];
+  ['prod-nombre','prod-cat','prod-qty','prod-costo','prod-precio-venta','prod-emoji'].forEach(id=>document.getElementById(id).value='');
+  closeModal('modal-producto');
+};
+
+// ─── VALORACIÓN ───
+function renderValoracion() {
+  let tc=0, tv=0;
+  document.getElementById('valoracion-body').innerHTML = state.productos.map(p=>{
+    const vc=Number(p.costo||0)*Number(p.qty||0);
+    const vv=Number(p.precioVenta||0)*Number(p.qty||0);
+    const margen=p.precioVenta>0?Math.round((p.precioVenta-p.costo)/p.precioVenta*100):0;
+    tc+=vc; tv+=vv;
+    return `<tr>
+      <td class="td-name">${p.emoji||'📦'} ${p.nombre}</td>
+      <td>${p.qty}</td>
+      <td class="td-muted">${fmtM(p.costo,p.moneda)}</td>
+      <td class="td-muted">${fmtM(p.precioVenta,p.moneda)}</td>
+      <td>${fmtM(vc,p.moneda)}</td>
+      <td style="color:var(--sage)">${fmtM(vv,p.moneda)}</td>
+      <td><span class="badge ${margen>40?'badge-green':margen>20?'badge-sage':'badge-amber'}">${margen}%</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('val-costo').textContent = fmt(tc);
+  document.getElementById('val-venta').textContent = fmt(tv);
+}
+
+// ─── VENTAS ───
+function populateVentaSelect() {
+  document.getElementById('venta-producto').innerHTML = state.productos.map(p=>`<option value="${p.nombre}">${p.nombre}</option>`).join('');
+}
+
+function renderVentas() {
+  let total=0, aprobadas=0, rechazadas=0;
+  state.ventas.forEach(v=>{ if(v.estado==='Aprobada'){total+=Number(v.total||0);aprobadas++;} if(v.estado==='Rechazada')rechazadas++; });
+  document.getElementById('v-total-mes').textContent = fmt(total);
+  document.getElementById('v-aprobadas').textContent = aprobadas;
+  document.getElementById('v-rechazadas').textContent = rechazadas;
+  document.getElementById('ventas-body').innerHTML = state.ventas.map(v=>`
+    <tr>
+      <td class="td-muted">${v.fecha||''}</td>
+      <td class="td-name">${v.cliente}</td>
+      <td>${v.producto}</td>
+      <td>${v.qty}</td>
+      <td>${fmtM(v.total,v.moneda)}</td>
+      <td><span class="badge badge-sage">${v.moneda}</span></td>
+      <td><span class="badge ${v.estado==='Aprobada'?'badge-green':v.estado==='Rechazada'?'badge-red':'badge-amber'}">${v.estado}</span></td>
+      <td style="display:flex;gap:4px;align-items:center">
+        ${v.estado==='Pendiente'?`<button class="btn btn-sm" style="background:var(--green-bg);color:var(--green-soft);border:none;cursor:pointer;border-radius:6px;padding:4px 8px;font-size:11px" onclick="aprobarVenta('${v.id}')">✓</button>`:''}
+        <button class="btn btn-sm btn-danger" onclick="deleteVenta('${v.id}')">✕</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:24px">No hay ventas registradas</td></tr>';
+}
+
+window.saveVenta = async () => {
+  const cliente = document.getElementById('venta-cliente').value.trim();
+  const producto = document.getElementById('venta-producto').value;
+  const qty = parseInt(document.getElementById('venta-qty').value)||1;
+  const total = parseInt(document.getElementById('venta-total').value)||0;
+  const moneda = document.getElementById('venta-moneda').value;
+  const estado = document.getElementById('venta-estado').value;
+  if(!cliente) return;
+  const ref = await addDoc(col('ventas'), { cliente, producto, qty, total, moneda, estado, fecha: today() });
+  if(estado==='Aprobada') await bajarStock(producto, qty);
+  closeModal('modal-venta');
+};
+
+window.aprobarVenta = async (id) => {
+  const v = state.ventas.find(x=>x.id===id);
+  if(!v) return;
+  await updateDoc(docRef('ventas',id), {estado:'Aprobada'});
+  await bajarStock(v.producto, v.qty);
+};
+
+window.deleteVenta = async (id) => {
+  if(!confirm('¿Eliminar esta venta?')) return;
+  await deleteDoc(docRef('ventas', id));
+};
+
+async function bajarStock(nombre, qty) {
+  const p = state.productos.find(x=>x.nombre===nombre);
+  if(p) await updateDoc(docRef('productos',p.id), { qty: Math.max(0, Number(p.qty)-Number(qty)) });
+}
+
+// ─── PRESUPUESTOS ───
+function renderPresupuestos() {
+  const data = state.presFilter==='todos' ? state.presupuestos : state.presupuestos.filter(p=>p.estado===state.presFilter);
+  document.getElementById('pres-body').innerHTML = data.map(p=>`
+    <tr>
+      <td class="td-muted">#${p.id?.slice(-4)||'—'}</td>
+      <td class="td-name">${p.cliente}</td>
+      <td>${p.desc||'—'}</td>
+      <td>${fmtM(p.total,p.moneda)}</td>
+      <td class="td-muted">${p.fecha||'—'}</td>
+      <td><span class="badge ${p.estado==='aprobado'?'badge-green':p.estado==='rechazado'?'badge-red':'badge-amber'}">${p.estado.charAt(0).toUpperCase()+p.estado.slice(1)}</span></td>
+      <td style="display:flex;gap:4px">
+        ${p.estado==='pendiente'?`
+          <button class="btn btn-sm" style="background:var(--green-bg);color:var(--green-soft);border:none;cursor:pointer;border-radius:6px;padding:4px 8px;font-size:11px" onclick="cambiarPres('${p.id}','aprobado')">✓</button>
+          <button class="btn btn-sm" style="background:var(--red-bg);color:var(--red-soft);border:none;cursor:pointer;border-radius:6px;padding:4px 8px;font-size:11px" onclick="cambiarPres('${p.id}','rechazado')">✗</button>`:''}
+      </td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-light);padding:24px">No hay presupuestos</td></tr>';
+}
+
+window.cambiarPres = async (id, estado) => {
+  const p = state.presupuestos.find(x=>x.id===id);
+  if(!p) return;
+  await updateDoc(docRef('presupuestos',id), {estado});
+  if(estado==='aprobado') {
+    await addDoc(col('ventas'), { cliente:p.cliente, producto:p.desc||'Presupuesto aprobado', qty:1, total:p.total, moneda:p.moneda, estado:'Aprobada', fecha:today() });
+  }
+};
+
+window.filterPres = (f, btn) => {
+  state.presFilter=f;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderPresupuestos();
+};
+
+window.savePresupuesto = async () => {
+  const cliente = document.getElementById('pres-cliente').value.trim();
+  if(!cliente) return;
+  await addDoc(col('presupuestos'), {
+    cliente, desc:document.getElementById('pres-desc').value,
+    total:parseInt(document.getElementById('pres-total').value)||0,
+    moneda:document.getElementById('pres-moneda').value,
+    fecha:document.getElementById('pres-fecha').value||'—',
+    estado:'pendiente'
+  });
+  ['pres-cliente','pres-desc','pres-total','pres-fecha'].forEach(id=>document.getElementById(id).value='');
+  closeModal('modal-presupuesto');
+};
+
+// ─── CAJA ───
+function renderCaja() {
+  let saldo=0;
+  document.getElementById('caja-movs').innerHTML = state.caja.map(m=>{
+    const monto=Number(m.monto||0);
+    if(m.tipo==='Ingreso') saldo+=monto; else saldo-=monto;
+    return `<div class="caja-row">
+      <div><div style="font-size:13px;font-weight:500">${m.desc}</div><div style="font-size:11px;color:var(--text-light)">${m.tipo} · ${m.moneda} · ${m.fecha||''}</div></div>
+      <div style="font-family:'DM Serif Display',serif;font-size:1rem;color:${m.tipo==='Ingreso'?'var(--green-soft)':'var(--red-soft)'}">${m.tipo==='Ingreso'?'+':'-'}${fmt(monto)}</div>
+    </div>`;
+  }).join('') || '<div style="color:var(--text-light);font-size:13px;padding:12px 0">Sin movimientos registrados</div>';
+  document.getElementById('caja-saldo').textContent = fmt(saldo);
+}
+
+window.addCajaMovimiento = async () => {
+  const desc=document.getElementById('caja-desc').value.trim();
+  const monto=parseInt(document.getElementById('caja-monto').value)||0;
+  if(!desc||!monto) return;
+  await addDoc(col('caja'), { desc, tipo:document.getElementById('caja-tipo').value, monto, moneda:document.getElementById('caja-moneda').value, fecha:today() });
+  document.getElementById('caja-desc').value='';
+  document.getElementById('caja-monto').value='';
+};
+
+// ─── GASTOS ───
+function renderGastos() {
+  const cats={};
+  state.gastos.forEach(g=>{ cats[g.cat]=(cats[g.cat]||0)+Number(g.monto||0); });
+  let total=0;
+  document.getElementById('gastos-list').innerHTML = Object.entries(cats).map(([cat,monto])=>{
+    total+=monto;
+    return `<div class="caja-row"><div style="font-size:13px;font-weight:500">${cat}</div><div style="color:var(--red-soft);font-family:'DM Serif Display',serif">${fmt(monto)}</div></div>`;
+  }).join('') || '<div style="color:var(--text-light);font-size:13px;padding:12px 0">Sin gastos registrados</div>';
+  document.getElementById('gastos-total').textContent = fmt(total);
+}
+
+window.addGasto = async () => {
+  const desc=document.getElementById('gasto-desc').value.trim();
+  const monto=parseInt(document.getElementById('gasto-monto').value)||0;
+  if(!desc||!monto) return;
+  await addDoc(col('gastos'), { cat:document.getElementById('gasto-cat').value, desc, monto, moneda:document.getElementById('gasto-moneda').value, fecha:today() });
+  document.getElementById('gasto-desc').value='';
+  document.getElementById('gasto-monto').value='';
+};
+
+// ─── WEB PÚBLICA ───
+function renderWebConfig() {
+  const w = userData.webConfig||{};
+  document.getElementById('web-url-input').value = w.url||'';
+  document.getElementById('web-nombre-input').value = w.nombre||userData.empresa?.nombre||'';
+  document.getElementById('web-desc-input').value = w.desc||'';
+  document.getElementById('web-precios').value = w.precios||'si';
+  updateWebUrlDisplay(w.url);
+  updateWebPreview();
+}
+
+function updateWebUrlDisplay(url) {
+  const box = document.getElementById('web-url-display');
+  if(url) {
+    box.innerHTML = `<div class="web-url-box"><span class="web-url-text">🔗 ${url}</span><a href="${url}" target="_blank" class="btn btn-ghost btn-sm">Abrir →</a></div>`;
+  } else {
+    box.innerHTML = `<div style="background:var(--amber-bg);border-radius:8px;padding:12px 14px;font-size:13px;color:var(--amber-soft)">⚠ Aún no configuraste una URL de web pública.</div>`;
+  }
+}
+
+window.saveWebConfig = async () => {
+  const config = {
+    url: document.getElementById('web-url-input').value.trim(),
+    nombre: document.getElementById('web-nombre-input').value.trim(),
+    desc: document.getElementById('web-desc-input').value.trim(),
+    precios: document.getElementById('web-precios').value
+  };
+  userData.webConfig = config;
+  await setDoc(userDoc(), { webConfig: config }, { merge: true });
+  updateWebUrlDisplay(config.url);
+  updateWebPreview();
+  alert('Configuración guardada ✓');
+};
+
+function updateWebPreview() {
+  const w = userData.webConfig||{};
+  const nombre = w.nombre || userData.empresa?.nombre || 'Mi Tienda';
+  document.getElementById('web-preview-nombre').textContent = nombre;
+  document.getElementById('web-preview-desc').textContent = w.desc||'Catálogo';
+  const list = document.getElementById('web-product-list');
+  if(!list) return;
+  list.innerHTML = state.productos.map(p=>`
+    <div class="web-product-item">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">${p.emoji||'📦'}</span>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">${p.nombre}</div>
+          <div style="font-size:11px;color:var(--text-light)">${p.cat||''}</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <span style="font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--sage)">${p.qty}</span>
+        <span style="font-size:11px;color:var(--text-light)"> en stock</span>
+        ${w.precios==='si'&&p.precioVenta?`<div style="font-size:12px;color:var(--text-mid)">${fmtM(p.precioVenta,p.moneda)}</div>`:''}
+      </div>
+    </div>`).join('') || '<div style="padding:16px;font-size:13px;color:var(--text-light);text-align:center">Sin productos cargados</div>';
+}
+
+// ─── PERFIL ───
+window.saveProfile = async () => {
+  const data = {
+    nombre: document.getElementById('perfil-nombre').value.trim(),
+    apellido: document.getElementById('perfil-apellido').value.trim(),
+    rol: document.getElementById('perfil-rol').value.trim(),
+  };
+  userData = {...userData, ...data};
+  await setDoc(userDoc(), data, {merge:true});
+  updateSidebar();
+  alert('Perfil guardado ✓');
+};
+
+window.changePassword = async () => {
+  const pass = document.getElementById('perfil-pass').value;
+  if(pass.length<6){alert('La contraseña debe tener al menos 6 caracteres');return;}
+  try { await updatePassword(auth.currentUser, pass); alert('Contraseña actualizada ✓'); document.getElementById('perfil-pass').value=''; }
+  catch(e){alert('Error: '+e.message);}
+};
+
+window.saveEmpresa = async () => {
+  const empresa = {
+    nombre: document.getElementById('empresa-nombre').value.trim(),
+    rubro: document.getElementById('empresa-rubro').value.trim(),
+    cuit: document.getElementById('empresa-cuit').value.trim(),
+    direccion: document.getElementById('empresa-dir').value.trim(),
+    telefono: document.getElementById('empresa-tel').value.trim(),
+    color: document.getElementById('empresa-color').value,
+  };
+  userData.empresa = empresa;
+  await setDoc(userDoc(), {empresa}, {merge:true});
+  updateSidebar();
+  applyAccentColor(empresa.color);
+  alert('Empresa guardada ✓');
+};
+
+// ─── AVATAR ───
+window.setAvatar = async (emoji) => {
+  userData.avatar = emoji;
+  await setDoc(userDoc(), {avatar:emoji}, {merge:true});
+  document.getElementById('sb-avatar').textContent = emoji;
+  document.getElementById('perfil-avatar').textContent = emoji;
+  closeModal('modal-avatar');
+};
+document.getElementById('perfil-avatar').onclick = () => openModal('modal-avatar');
+
+// ─── COLOR SYNC ───
+document.getElementById('empresa-color').addEventListener('input', e => {
+  document.getElementById('empresa-color-text').value = e.target.value;
+});
+document.getElementById('empresa-color-text').addEventListener('input', e => {
+  if(/^#[0-9a-fA-F]{6}$/.test(e.target.value)) document.getElementById('empresa-color').value = e.target.value;
+});
+
+</script>
+</body>
+</html>

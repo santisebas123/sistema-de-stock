@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>gestion_corregido.html</title>
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#f5f5f5;
+  padding:40px;
+  color:#222;
+}
+pre{
+  background:#111;
+  color:#0f0;
+  padding:16px;
+  overflow:auto;
+  border-radius:8px;
+}
+h1,h2{
+  color:#2e4228;
+}
+.card{
+  background:white;
+  padding:24px;
+  border-radius:12px;
+  margin-bottom:24px;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+<h1>Correcciones para gestion.html</h1>
+<p>Este archivo contiene las correcciones necesarias para eliminar la pantalla blanca y corregir Firebase Auth.</p>
+</div>
+
+<div class="card">
+<h2>1) Reemplazar onAuthStateChanged</h2>
+
+<pre>
+onAuthStateChanged(auth, async user => {
+
+  document.getElementById('loading-screen').classList.add('hidden');
+
+  try {
+
+    if (user) {
+
+      currentUser = user;
+
+      await loadUserData();
+
+      subscribeAll();
+
+      document.getElementById('auth-screen').classList.add('hidden');
+      document.getElementById('app-screen').classList.remove('hidden');
+
+      updateSidebar();
+      renderDashboard();
+
+    } else {
+
+      currentUser = null;
+
+      unsubs.forEach(u => u());
+
+      document.getElementById('auth-screen').classList.remove('hidden');
+      document.getElementById('app-screen').classList.add('hidden');
+    }
+
+  } catch (e) {
+
+    console.error('ERROR AUTH:', e);
+
+    alert('Error cargando la aplicación. Revisá la consola.');
+  }
+});
+</pre>
+</div>
+
+<div class="card">
+<h2>2) Corregir saveProducto()</h2>
+
+<p>CAMBIAR:</p>
+
+<pre>
+variantes: [.state.variants_temp],
+</pre>
+
+<p>POR:</p>
+
+<pre>
+variantes: state.variants_temp,
+</pre>
+
+</div>
+
+<div class="card">
+<h2>3) Nueva función saveProducto completa</h2>
+
+<pre>
+window.saveProducto = async () => {
+
+  try {
+
+    const nombre = document.getElementById('prod-nombre').value.trim();
+
+    if (!nombre) {
+      alert('El nombre es obligatorio');
+      return;
+    }
+
+    await addDoc(col('productos'), {
+      nombre,
+      cat: document.getElementById('prod-cat').value || '',
+      qty: parseInt(document.getElementById('prod-qty').value) || 0,
+      costo: parseInt(document.getElementById('prod-costo').value) || 0,
+      precioVenta: parseInt(document.getElementById('prod-precio-venta').value) || 0,
+      moneda: document.getElementById('prod-moneda').value,
+      emoji: document.getElementById('prod-emoji').value || '📦',
+      variantes: state.variants_temp,
+      creadoEn: today()
+    });
+
+    state.variants_temp = [];
+
+    ['prod-nombre','prod-cat','prod-qty','prod-costo','prod-precio-venta','prod-emoji']
+      .forEach(id => document.getElementById(id).value = '');
+
+    renderVariantTags();
+
+    closeModal('modal-producto');
+
+  } catch (e) {
+
+    console.error('ERROR GUARDANDO PRODUCTO:', e);
+
+    alert('No se pudo guardar el producto');
+  }
+};
+</pre>
+
+</div>
+
+</body>
+</html>
